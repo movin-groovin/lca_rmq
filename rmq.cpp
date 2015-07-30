@@ -18,14 +18,14 @@
 
 
 class CrmqCalculater {
-	typedef std::function<bool (size_t, size_t)> CmpFunc;
+	typedef std::function<const size_t& (const size_t&, const size_t&)> CmpFunc;
 public:
 	CrmqCalculater () {}
 	template <typename Iter>
 	CrmqCalculater (
 		Iter start,
 		Iter end,
-		CmpFunc f = std::less_equal<size_t> ()
+		CmpFunc f
 	)
 	{
 		Initialize(start, end, f);
@@ -38,7 +38,7 @@ public:
 	void ReInitialize(
 		Iter start,
 		Iter end,
-		CmpFunc f = std::less_equal<size_t> ()
+		CmpFunc f
 	)
 	{
 		Initialize(start, end, f);
@@ -49,7 +49,7 @@ public:
 	void Initialize(
 		Iter start,
 		Iter end,
-		CmpFunc f = std::less_equal<size_t> ()
+		CmpFunc f
 	)
 	{
 		if (!m_data.empty()) {
@@ -88,7 +88,8 @@ std::cout << "\n\n" << (j - i + 1) - 1 << " - " << log_val << " - " << m_sparse_
 		if (log_val >= m_sparse_table.size())
 			throw std::runtime_error("Incorrect calculations");
 		
-		size_t val = std::min(
+		//size_t val = std::min(
+		size_t val = m_cmp(
 			m_sparse_table[log_val][i],
 			m_sparse_table[log_val][j - pow(2, log_val) + 1]
 		);
@@ -152,7 +153,8 @@ void CrmqCalculater::CalcSparseTable() {
 		
 		for (size_t k = 0; k + pow_val <= data_size; ++k) {
 			new_row.push_back(
-				std::min(
+				//std::min(
+				m_cmp(
 					m_sparse_table[i - 1][k],
 					m_sparse_table[i - 1][k + pow_val_min1]
 				)
@@ -171,7 +173,11 @@ int main (int argc, char *argv[]) {
 	size_t i = 0, j = 0;
 	std::vector<int> data {1,2,3,8,0,6,5,3,2,1,34,4}; // n = 12
 	//std::vector<int> data {3, 1, 9, 7, 8, 5, 0, 8, 6};
-	CrmqCalculater min_query(data.begin(), data.end());
+	CrmqCalculater min_query(
+		data.begin(),
+		data.end(),
+		[](const size_t& a, const size_t& b)->const size_t&{return a <= b ? a : b;}
+	);
 	
 	if (argc < 2) {
 		std::cout << "Enter i, j\n";
@@ -193,7 +199,6 @@ int main (int argc, char *argv[]) {
 		std::cout << "Have caught an exception: " << Exc.what() << "\n";
 		return 1001;
 	}
-	
 	
 	return 0;
 }
